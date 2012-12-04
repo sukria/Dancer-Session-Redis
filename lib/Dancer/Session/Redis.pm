@@ -74,6 +74,10 @@ sub _sessions {
 1;
 __END__
 
+=head1 DISCLAIMER
+
+This engine does not work with Dancer 1.
+
 =head1 DESCRIPTION
 
 This engine provides support for session storage in Redis for Dancer 2.
