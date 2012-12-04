@@ -47,9 +47,25 @@ The password if any.
 
 has password => (is => 'ro');
 
+=attr key_prefix
+
+A prefix for naming the keys used to store sessions.
+
+Default is C<dancer_session_>.
+
+=cut
+
+has key_prefix => (
+    is => 'ro',
+    isa => Str,
+    default => sub { 'dancer_session_' },
+);
+
+# implementation of the role's interface
+
 sub _retrieve {
     my ($self, $session_id) = @_;
-    my $json = $self->redis->get($session_id);
+    my $json = $self->redis->get($self->key_prefix.$session_id);
     my $hash = from_json( $json );
     return bless $hash, 'Dancer::Core::Session';
 }
@@ -57,18 +73,19 @@ sub _retrieve {
 sub _flush {
     my ($self, $session) = @_;
     my $json = to_json( { %{ $session } } );
-    $self->redis->set($session->id, $json);
+    $self->redis->set($self->key_prefix.$session->id, $json);
 }
 
 sub _destroy {
     my ($self, $session_id) = @_;
-    $self->redis->del($session_id);
+    $self->redis->del($self->key_prefix.$session_id);
 }
 
 sub _sessions {
     my ($self) = @_;
-    my @keys = $self->redis->keys('*');
-    return \@keys;
+    my @keys = $self->redis->keys($self->key_prefix.'*');
+    my $prefix = $self->key_prefix;
+    return [ map { s/$prefix//; $_ } @keys ];
 }
 
 1;
